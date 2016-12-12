@@ -1,0 +1,178 @@
+#%RAML 1.0
+title: Mule Play
+description: A (rather simple) community playlist API.
+version: 1.0
+mediaType: application/json
+
+annotationTypes:
+  alias: string
+  resolve: string
+  source: string
+
+types:
+  User:
+    type: object
+    properties:
+      id:
+        type: string
+        (alias): userId
+      username: string
+      email: string
+      friends:
+        type: string[]
+        (resolve): /users/{userId}/
+      playlists?:
+        type: Playlist[]
+        (source): /users/{userId}/playlists
+
+  Artist:
+    type: object
+    properties:
+      id: string
+      name: string
+      albums:
+        type: string[]
+        (resolve): /albums/{albumId}
+
+  Album:
+    type: object
+    properties:
+      id: string
+      name: string
+      artist: string
+      year: integer
+      songs: string[]
+
+  Song:
+    type: object
+    properties:
+      id: string
+      name: string
+      album:
+        type: string
+        (resolve): /albums/{albumId}
+
+  Playlist:
+    type: object
+    properties:
+      id: string
+      name: string
+      songs:
+        type: string[]
+        (resolve): /songs/{songId}
+
+traits:
+  paged:
+    queryParameters:
+      limit:
+        type: integer
+        minimum: 0
+        default: 10
+        maximum: 50
+        required: false
+      offset:
+        type: integer
+        default: 0
+        required: false
+
+/users:
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            type: User[]
+
+  /{userId}:
+    uriParameters:
+      userId:
+        type: integer
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              type: User
+
+    /playlists:
+      get:
+        is: [paged]
+        queryParameters:
+          sortBy:
+            type: string
+            required: false
+
+        responses:
+          200:
+            body:
+              application/json:
+                type: Playlist[]
+
+      /{playlistId}:
+        uriParameters:
+          playlistId:
+            type: integer
+        get:
+          responses:
+            200:
+              body:
+                application/json:
+                  type: Playlist
+
+/artists:
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            type: Artist[]
+
+  /{artistId}:
+    uriParameters:
+      artistId:
+        type: integer
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              type: Artist
+
+/albums:
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            type: Album[]
+
+  /{albumId}:
+    uriParameters:
+      albumId:
+        type: integer
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              type: Album
+
+/songs:
+  get:
+    is: [paged]
+    responses:
+      200:
+        body:
+          application/json:
+            type: Song[]
+
+  /{songId}:
+    uriParameters:
+      songId:
+        type: integer
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              type: Song
